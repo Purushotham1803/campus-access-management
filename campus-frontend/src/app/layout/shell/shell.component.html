@@ -1,0 +1,38 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #drawer class="sidenav"
+      [mode]="(isHandset$ | async) ? 'over' : 'side'"
+      [opened]="!(isHandset$ | async)"
+      [fixedInViewport]="(isHandset$ | async) ?? false">
+    <div class="brand">
+      <mat-icon class="brand-icon">school</mat-icon>
+      <span>Campus Access</span>
+    </div>
+    <mat-nav-list>
+      <a mat-list-item
+         *ngFor="let link of links"
+         [routerLink]="link.path"
+         routerLinkActive="active-link"
+         (click)="drawer.close()">
+        <mat-icon matListItemIcon>{{link.icon}}</mat-icon>
+        <span matListItemTitle>{{link.label}}</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="toolbar">
+      <button mat-icon-button *ngIf="isHandset$ | async" (click)="drawer.toggle()" aria-label="Toggle navigation">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="brand-mobile" *ngIf="isHandset$ | async">Campus Access</span>
+      <span class="spacer"></span>
+      <span class="user-info">{{username}} ({{role}})</span>
+      <button mat-icon-button (click)="logout()" matTooltip="Logout">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+    <div class="page-content">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

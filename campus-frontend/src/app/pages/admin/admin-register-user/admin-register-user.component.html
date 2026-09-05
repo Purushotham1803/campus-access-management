@@ -1,0 +1,84 @@
+<div class="container-fluid p-0">
+  <div class="mb-4">
+    <h2 class="page-title mb-1">Register User</h2>
+    <p class="text-muted mb-0">Create a Student, Faculty, Admin or Security account.</p>
+  </div>
+
+  <div class="row">
+    <div class="col-12 col-lg-7">
+      <mat-card class="card-surface p-4">
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMsg">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{errorMsg}}</span>
+          </div>
+
+          <div class="alert alert-success d-flex align-items-center gap-2" *ngIf="lastCreated">
+            <mat-icon>check_circle</mat-icon>
+            <span>Account <strong>{{lastCreated.username}}</strong> ({{lastCreated.role}}) is ready to sign in.</span>
+          </div>
+
+          <mat-form-field appearance="outline" class="w-100 mb-2">
+            <mat-label>Role</mat-label>
+            <mat-select formControlName="role">
+              <mat-option value="STUDENT">Student</mat-option>
+              <mat-option value="FACULTY">Faculty</mat-option>
+              <mat-option value="ADMIN">Admin</mat-option>
+              <mat-option value="SECURITY">Security</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="row">
+            <div class="col-12 col-sm-6">
+              <mat-form-field appearance="outline" class="w-100 mb-2">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username" placeholder="e.g. jsmith" />
+                <mat-error *ngIf="form.get('username')?.invalid">At least 3 characters.</mat-error>
+              </mat-form-field>
+            </div>
+            <div class="col-12 col-sm-6">
+              <mat-form-field appearance="outline" class="w-100 mb-2">
+                <mat-label>Temporary Password</mat-label>
+                <input matInput type="password" formControlName="password" placeholder="At least 4 characters" />
+                <mat-error *ngIf="form.get('password')?.invalid">At least 4 characters.</mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="needsDepartment">
+            <div class="col-12" [class.col-sm-6]="needsYear">
+              <mat-form-field appearance="outline" class="w-100 mb-2">
+                <mat-label>Department</mat-label>
+                <input matInput formControlName="department" placeholder="e.g. Computer Science" />
+              </mat-form-field>
+            </div>
+            <div class="col-12 col-sm-6" *ngIf="needsYear">
+              <mat-form-field appearance="outline" class="w-100 mb-2">
+                <mat-label>Year</mat-label>
+                <input matInput type="number" formControlName="year" min="1" max="6" placeholder="e.g. 2" />
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-2">
+            <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
+              <mat-icon>person_add</mat-icon> {{submitting ? 'Creating...' : 'Create Account'}}
+            </button>
+            <button mat-button type="button" routerLink="/admin/users">View Users</button>
+          </div>
+        </form>
+      </mat-card>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <mat-card class="card-surface p-4 tips-card">
+        <h6 class="mb-3"><mat-icon class="align-middle">lightbulb</mat-icon> Notes</h6>
+        <ul class="tips-list">
+          <li>Only admins can register new accounts.</li>
+          <li>Students and Faculty need a department; Students also need a year.</li>
+          <li>The new user signs in immediately with the username and password you set here.</li>
+        </ul>
+      </mat-card>
+    </div>
+  </div>
+</div>

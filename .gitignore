@@ -1,0 +1,28 @@
+# Secrets — never commit real values
+.env
+.env.*
+!.env.example
+
+# Credentials reference kept for local use only, not for a public repo
+LOGIN_CREDENTIALS.txt
+
+# Maven build output (all backend modules)
+**/target/
+
+# Angular / Node
+campus-frontend/node_modules/
+campus-frontend/dist/
+campus-frontend/.angular/
+npm-debug.log*
+
+# IDE / OS noise
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Scratch/local-only working area
+scratch/
+
+# Local Claude Code tooling state — not part of the application
+.claude/

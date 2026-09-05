@@ -1,0 +1,66 @@
+<div class="container-fluid p-0">
+  <div class="mb-4">
+    <h2 class="page-title mb-1">Pending Requests</h2>
+    <p class="text-muted mb-0">Review and act on outing requests awaiting a decision.</p>
+  </div>
+
+  <mat-card class="card-surface p-4">
+    <div class="text-center py-5" *ngIf="loading">
+      <mat-spinner diameter="36" class="mx-auto"></mat-spinner>
+    </div>
+
+    <div class="text-center text-muted py-5" *ngIf="!loading && requests.length === 0">
+      <mat-icon class="empty-icon">task_alt</mat-icon>
+      <p class="mb-0">No pending requests — all caught up!</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && requests.length > 0">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Requester</th>
+            <th>Type</th>
+            <th>Reason</th>
+            <th>Destination</th>
+            <th>Departure</th>
+            <th>Return</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let r of requests">
+            <tr>
+              <td>{{requesterName(r.userId)}}</td>
+              <td><span class="badge text-bg-light">{{r.type}}</span></td>
+              <td>{{r.reason}}</td>
+              <td>{{r.destination}}</td>
+              <td>{{r.departureTime | date:'MMM d, h:mm a'}}</td>
+              <td>{{r.returnTime | date:'MMM d, h:mm a'}}</td>
+              <td class="text-end">
+                <button mat-button color="primary" (click)="toggle(r)">
+                  <mat-icon>{{expandedId === r.id ? 'expand_less' : 'rate_review'}}</mat-icon> Review
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="expandedId === r.id" class="review-row">
+              <td colspan="7">
+                <div class="review-panel">
+                  <mat-form-field appearance="outline" class="flex-grow-1 mb-0">
+                    <mat-label>Reason / note (optional)</mat-label>
+                    <input matInput [(ngModel)]="reason" placeholder="Add a note for this decision" />
+                  </mat-form-field>
+                  <button mat-raised-button color="primary" [disabled]="processing" (click)="decide(r, 'APPROVED')">
+                    <mat-icon>check</mat-icon> Approve
+                  </button>
+                  <button mat-raised-button color="warn" [disabled]="processing" (click)="decide(r, 'REJECTED')">
+                    <mat-icon>close</mat-icon> Reject
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</div>

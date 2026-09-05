@@ -1,0 +1,44 @@
+<div class="container-fluid p-0">
+  <div class="mb-4">
+    <h2 class="page-title mb-1">Audit Logs</h2>
+    <p class="text-muted mb-0">Full history of every approval decision made on the platform.</p>
+  </div>
+
+  <mat-card class="card-surface p-4">
+    <div class="text-center py-5" *ngIf="loading">
+      <mat-spinner diameter="36" class="mx-auto"></mat-spinner>
+    </div>
+
+    <div class="text-center text-muted py-5" *ngIf="!loading && rows.length === 0">
+      <mat-icon class="empty-icon">history</mat-icon>
+      <p class="mb-0">No approval decisions have been made yet.</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && rows.length > 0">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Request #</th>
+            <th>Requester</th>
+            <th>Type</th>
+            <th>Destination</th>
+            <th>Decision</th>
+            <th>Decided By</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows">
+            <td>#{{row.approval.requestId}}</td>
+            <td>{{row.requesterName}}</td>
+            <td>{{row.request?.type || '—'}}</td>
+            <td>{{row.request?.destination || '—'}}</td>
+            <td><span class="badge status-badge" [ngClass]="getStatusClass(row.approval.status)">{{row.approval.status}}</span></td>
+            <td>{{row.adminName}}</td>
+            <td class="text-muted">{{row.approval.reason || '—'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</div>

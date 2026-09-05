@@ -1,0 +1,82 @@
+<div class="container-fluid p-0">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div>
+      <h2 class="page-title mb-1">Welcome back, {{username}}</h2>
+      <p class="text-muted mb-0">{{department || role}} &middot; Here's what's happening with your outings.</p>
+    </div>
+    <span class="badge rounded-pill campus-badge" [class.badge-in]="campusStatus === 'IN'" [class.badge-out]="campusStatus === 'OUT'">
+      <mat-icon>{{campusStatus === 'IN' ? 'location_city' : 'directions_walk'}}</mat-icon>
+      Campus Status: {{campusStatus}}
+    </span>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon text-primary">list_alt</mat-icon>
+        <div class="stat-value">{{totalRequests}}</div>
+        <div class="stat-label">Total Requests</div>
+      </mat-card>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon text-warning">pending_actions</mat-icon>
+        <div class="stat-value">{{pendingCount}}</div>
+        <div class="stat-label">Pending</div>
+      </mat-card>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+      <mat-card class="stat-card">
+        <mat-icon class="stat-icon text-success">check_circle</mat-icon>
+        <div class="stat-value">{{approvedCount}}</div>
+        <div class="stat-label">Approved</div>
+      </mat-card>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+      <mat-card class="stat-card action-card" routerLink="/student/new-request">
+        <mat-icon class="stat-icon">add_circle</mat-icon>
+        <div class="stat-label">New Outing Request</div>
+      </mat-card>
+    </div>
+  </div>
+
+  <mat-card class="recent-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Recent Requests</h5>
+      <button mat-button color="primary" routerLink="/student/requests">View all</button>
+    </div>
+
+    <div class="text-center py-5" *ngIf="loading">
+      <mat-spinner diameter="36" class="mx-auto"></mat-spinner>
+    </div>
+
+    <div class="text-center text-muted py-5" *ngIf="!loading && recentRequests.length === 0">
+      <mat-icon class="empty-icon">inbox</mat-icon>
+      <p class="mb-3">You haven't submitted any outing requests yet.</p>
+      <button mat-raised-button color="primary" routerLink="/student/new-request">Create your first request</button>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && recentRequests.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Destination</th>
+            <th>Departure</th>
+            <th>Return</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of recentRequests">
+            <td>{{r.type}}</td>
+            <td>{{r.destination}}</td>
+            <td>{{r.departureTime | date:'MMM d, y, h:mm a'}}</td>
+            <td>{{r.returnTime | date:'MMM d, y, h:mm a'}}</td>
+            <td><span class="badge status-badge" [ngClass]="getStatusClass(r.status)">{{r.status}}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</div>

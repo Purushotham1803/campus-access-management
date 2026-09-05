@@ -1,0 +1,81 @@
+<div class="container-fluid p-0">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div>
+      <h2 class="page-title mb-1">My Requests</h2>
+      <p class="text-muted mb-0">Track and manage all your outing requests.</p>
+    </div>
+    <button mat-raised-button color="primary" routerLink="/student/new-request">
+      <mat-icon>add</mat-icon> New Request
+    </button>
+  </div>
+
+  <div class="btn-group filter-group mb-4" role="group">
+    <button type="button" class="btn" *ngFor="let f of filters"
+            [class.btn-primary]="filter === f" [class.btn-outline-primary]="filter !== f"
+            (click)="filter = f">
+      {{f | titlecase}}
+    </button>
+  </div>
+
+  <mat-card class="card-surface p-4">
+    <div class="text-center py-5" *ngIf="loading">
+      <mat-spinner diameter="36" class="mx-auto"></mat-spinner>
+    </div>
+
+    <div class="text-center text-muted py-5" *ngIf="!loading && filteredRequests.length === 0">
+      <mat-icon class="empty-icon">inbox</mat-icon>
+      <p class="mb-0">No requests found for this filter.</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && filteredRequests.length > 0">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Reason</th>
+            <th>Destination</th>
+            <th>Departure</th>
+            <th>Return</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let r of filteredRequests">
+            <tr>
+              <td>{{r.type}}</td>
+              <td>{{r.reason}}</td>
+              <td>{{r.destination}}</td>
+              <td>{{r.departureTime | date:'MMM d, y, h:mm a'}}</td>
+              <td>{{r.returnTime | date:'MMM d, y, h:mm a'}}</td>
+              <td><span class="badge status-badge" [ngClass]="getStatusClass(r.status)">{{r.status}}</span></td>
+              <td class="text-end">
+                <button mat-button color="warn" *ngIf="r.status === 'PENDING'" (click)="cancel(r)">
+                  <mat-icon>close</mat-icon> Cancel
+                </button>
+                <button mat-button color="primary" *ngIf="r.status === 'APPROVED'" (click)="togglePass(r)">
+                  <mat-icon>{{expandedId === r.id ? 'expand_less' : 'qr_code_2'}}</mat-icon>
+                  {{expandedId === r.id ? 'Hide Pass' : 'View Pass'}}
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="expandedId === r.id" class="pass-row">
+              <td colspan="7">
+                <div class="pass-panel" *ngIf="passCache[r.id] === 'loading'">Loading pass...</div>
+                <div class="pass-panel text-danger" *ngIf="passCache[r.id] === 'none'">Pass not available yet.</div>
+                <div class="pass-panel" *ngIf="passCache[r.id] && passCache[r.id] !== 'loading' && passCache[r.id] !== 'none'">
+                  <mat-icon class="pass-icon">qr_code_2</mat-icon>
+                  <div>
+                    <div class="pass-label">Your Gate Pass Code</div>
+                    <div class="pass-code">{{ $any(passCache[r.id]).passCode }}</div>
+                    <div class="pass-hint">Show this code to security at the gate for entry/exit.</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</div>

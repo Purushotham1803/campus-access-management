@@ -1,0 +1,95 @@
+<div class="container-fluid p-0">
+  <div class="mb-4">
+    <h2 class="page-title mb-1">Admin Overview</h2>
+    <p class="text-muted mb-0">Campus-wide outing activity at a glance.</p>
+  </div>
+
+  <div class="text-center py-5" *ngIf="loading">
+    <mat-spinner diameter="36" class="mx-auto"></mat-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-sm-6 col-lg-3">
+        <mat-card class="stat-card" routerLink="/admin/requests">
+          <mat-icon class="stat-icon text-warning">pending_actions</mat-icon>
+          <div class="stat-value">{{pending.length}}</div>
+          <div class="stat-label">Awaiting Approval</div>
+        </mat-card>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <mat-card class="stat-card">
+          <mat-icon class="stat-icon text-success">check_circle</mat-icon>
+          <div class="stat-value">{{approvedCount}}</div>
+          <div class="stat-label">Approved</div>
+        </mat-card>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <mat-card class="stat-card">
+          <mat-icon class="stat-icon text-danger">cancel</mat-icon>
+          <div class="stat-value">{{rejectedCount}}</div>
+          <div class="stat-label">Rejected</div>
+        </mat-card>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <mat-card class="stat-card">
+          <mat-icon class="stat-icon text-primary">directions_walk</mat-icon>
+          <div class="stat-value">{{studentsOut.length}}</div>
+          <div class="stat-label">Currently Off-Campus</div>
+        </mat-card>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-lg-7">
+        <mat-card class="card-surface p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Pending Approvals</h5>
+            <button mat-button color="primary" routerLink="/admin/requests">Review all</button>
+          </div>
+
+          <div class="text-center text-muted py-4" *ngIf="pendingPreview.length === 0">
+            <mat-icon class="empty-icon">task_alt</mat-icon>
+            <p class="mb-0">All caught up — no pending requests.</p>
+          </div>
+
+          <div class="table-responsive" *ngIf="pendingPreview.length > 0">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr><th>Requester</th><th>Type</th><th>Destination</th><th>Departure</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of pendingPreview">
+                  <td>{{requesterName(r.userId)}}</td>
+                  <td>{{r.type}}</td>
+                  <td>{{r.destination}}</td>
+                  <td>{{r.departureTime | date:'MMM d, h:mm a'}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </mat-card>
+      </div>
+
+      <div class="col-12 col-lg-5">
+        <mat-card class="card-surface p-4">
+          <h5 class="mb-3">Currently Off-Campus</h5>
+          <div class="text-center text-muted py-4" *ngIf="studentsOut.length === 0">
+            <mat-icon class="empty-icon">location_city</mat-icon>
+            <p class="mb-0">Everyone is on campus right now.</p>
+          </div>
+          <div class="off-campus-list" *ngIf="studentsOut.length > 0">
+            <div class="off-campus-item" *ngFor="let u of studentsOut">
+              <mat-icon>person</mat-icon>
+              <div>
+                <div class="fw-semibold">{{u.username}}</div>
+                <div class="text-muted small">{{u.role}}{{u.department ? ' · ' + u.department : ''}}</div>
+              </div>
+              <span class="badge status-badge badge-out ms-auto">OUT</span>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </ng-container>
+</div>

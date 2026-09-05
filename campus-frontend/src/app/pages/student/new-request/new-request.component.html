@@ -1,0 +1,104 @@
+<div class="container-fluid p-0">
+  <div class="mb-4">
+    <h2 class="page-title mb-1">New Outing Request</h2>
+    <p class="text-muted mb-0">Fill in the details below to request permission to leave campus.</p>
+  </div>
+
+  <div class="row">
+    <div class="col-12 col-lg-8">
+      <mat-card class="card-surface p-4">
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMsg">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{errorMsg}}</span>
+          </div>
+
+          <mat-form-field appearance="outline" class="w-100 mb-2">
+            <mat-label>Outing Type</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="LOCAL">Local (same day)</mat-option>
+              <mat-option value="NON_LOCAL">Non-Local (multi-day)</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="alert alert-info small py-2" *ngIf="isLocal">
+            <mat-icon class="align-middle" style="font-size:16px;width:16px;height:16px;">info</mat-icon>
+            Local outings depart and return <strong>today</strong> only, between 5:00 AM and 9:00 PM.
+          </div>
+          <div class="alert alert-info small py-2" *ngIf="!isLocal">
+            <mat-icon class="align-middle" style="font-size:16px;width:16px;height:16px;">info</mat-icon>
+            Non-local outings can be scheduled any day from today through {{maxBookingDate | date:'MMM d, y'}}.
+          </div>
+
+          <mat-form-field appearance="outline" class="w-100 mb-2">
+            <mat-label>Reason</mat-label>
+            <textarea matInput formControlName="reason" rows="3" placeholder="e.g. Doctor's appointment"></textarea>
+            <mat-error *ngIf="form.get('reason')?.invalid">Please provide a valid reason.</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100 mb-2">
+            <mat-label>Destination</mat-label>
+            <input matInput formControlName="destination" placeholder="e.g. City Hospital" />
+            <mat-error *ngIf="form.get('destination')?.invalid">Destination is required.</mat-error>
+          </mat-form-field>
+
+          <div class="row">
+            <div class="col-12 col-sm-6">
+              <mat-form-field appearance="outline" class="w-100 mb-2">
+                <mat-label>Departure Date</mat-label>
+                <input matInput [matDatepicker]="depPicker" formControlName="departureDate"
+                       [min]="dateMin" [max]="dateMax" readonly />
+                <mat-datepicker-toggle matSuffix [for]="depPicker"></mat-datepicker-toggle>
+                <mat-datepicker #depPicker></mat-datepicker>
+                <mat-error *ngIf="form.get('departureDate')?.invalid">Pick a date within the allowed range.</mat-error>
+              </mat-form-field>
+            </div>
+            <div class="col-12 col-sm-6">
+              <mat-form-field appearance="outline" class="w-100 mb-2">
+                <mat-label>Departure Time</mat-label>
+                <input matInput type="time" formControlName="departureTimeOfDay" [min]="departureTimeMin" [max]="departureTimeMax" />
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-12 col-sm-6">
+              <mat-form-field appearance="outline" class="w-100 mb-2">
+                <mat-label>Expected Return Date</mat-label>
+                <input matInput [matDatepicker]="retPicker" formControlName="returnDate"
+                       [min]="dateMin" [max]="dateMax" readonly />
+                <mat-datepicker-toggle matSuffix [for]="retPicker"></mat-datepicker-toggle>
+                <mat-datepicker #retPicker></mat-datepicker>
+                <mat-error *ngIf="form.get('returnDate')?.invalid">Pick a date within the allowed range.</mat-error>
+              </mat-form-field>
+            </div>
+            <div class="col-12 col-sm-6">
+              <mat-form-field appearance="outline" class="w-100 mb-2">
+                <mat-label>Expected Return Time</mat-label>
+                <input matInput type="time" formControlName="returnTimeOfDay" [min]="returnTimeMin" [max]="returnTimeMax" />
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-2">
+            <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
+              <mat-icon>send</mat-icon> {{submitting ? 'Submitting...' : 'Submit Request'}}
+            </button>
+            <button mat-button type="button" routerLink="/student/dashboard">Cancel</button>
+          </div>
+        </form>
+      </mat-card>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <mat-card class="card-surface p-4 tips-card">
+        <h6 class="mb-3"><mat-icon class="align-middle">lightbulb</mat-icon> Tips</h6>
+        <ul class="tips-list">
+          <li>Submitting sets your request to <strong>Pending</strong> &mdash; an admin must approve it.</li>
+          <li>Once approved, its status changes to <strong>Approved</strong> and a gate pass code is generated automatically.</li>
+          <li>Track the status any time from "My Requests". A still-pending request can be cancelled there.</li>
+        </ul>
+      </mat-card>
+    </div>
+  </div>
+</div>

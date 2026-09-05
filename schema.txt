@@ -1,0 +1,28 @@
+﻿Shared Database: `campus_access_db`
+Entities per service (using JPA ddl-auto=update):
+
+1. `user-service`:
+- `User` (id, username, password, role (Enum), campus_status (IN/OUT))
+- `Student` (id, user_id, department, year)
+- `Faculty` (id, user_id, department)
+
+2. `auth-service`:
+- Needs access to `User` table to verify credentials and generate JWT. It can have a read-only or simple `User` entity just for authentication (id, username, password, role).
+
+3. `access-service`:
+- `OutingRequest` (id, user_id, type (LOCAL/NON_LOCAL), reason, destination, departure_time, return_time, status (PENDING/APPROVED/REJECTED/CANCELLED/EXPIRED))
+- `AccessPass` (id, request_id, pass_code)
+- `GateEntryExit` (id, pass_id, security_id, scan_time, type (OUT/IN))
+
+4. `approval-service`:
+- Needs access to `OutingRequest` to update status.
+- `Approval` (id, request_id, admin_id, status, reason)
+
+Security/JWT:
+- Secret: set via the JWT_SECRET environment variable (see .env.example). Do not hardcode.
+- Auth service generates token with roles.
+- Other services use JwtFilter to validate token and populate SecurityContext.
+
+Roles: STUDENT, FACULTY, ADMIN, SECURITY
+Statuses: PENDING, APPROVED, REJECTED, CANCELLED, EXPIRED
+Campus Status: IN, OUT

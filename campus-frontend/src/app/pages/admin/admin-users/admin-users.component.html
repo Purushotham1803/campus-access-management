@@ -1,0 +1,61 @@
+<div class="container-fluid p-0">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+      <h2 class="page-title mb-1">Users</h2>
+      <p class="text-muted mb-0">All registered students, faculty, admins and security staff.</p>
+    </div>
+    <mat-form-field appearance="outline" class="search-field mb-0">
+      <mat-label>Search by username</mat-label>
+      <input matInput [(ngModel)]="search" placeholder="e.g. student" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <div class="btn-group filter-group mb-4" role="group">
+    <button type="button" class="btn" *ngFor="let r of roles"
+            [class.btn-primary]="roleFilter === r" [class.btn-outline-primary]="roleFilter !== r"
+            (click)="roleFilter = r">
+      {{r | titlecase}}
+    </button>
+  </div>
+
+  <mat-card class="card-surface p-4">
+    <div class="text-center py-5" *ngIf="loading">
+      <mat-spinner diameter="36" class="mx-auto"></mat-spinner>
+    </div>
+
+    <div class="text-center text-muted py-5" *ngIf="!loading && filteredUsers.length === 0">
+      <mat-icon class="empty-icon">people_outline</mat-icon>
+      <p class="mb-0">No users match this filter.</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && filteredUsers.length > 0">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Year</th>
+            <th>Campus Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of filteredUsers">
+            <td>#{{u.id}}</td>
+            <td class="fw-semibold">{{u.username}}</td>
+            <td><span class="badge text-bg-light">{{u.role}}</span></td>
+            <td>{{u.department || '—'}}</td>
+            <td>{{u.year || '—'}}</td>
+            <td>
+              <span class="badge status-badge" [ngClass]="u.campusStatus === 'OUT' ? 'badge-out' : 'badge-in'">
+                {{u.campusStatus}}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</div>

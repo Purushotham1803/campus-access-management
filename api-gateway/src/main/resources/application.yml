@@ -1,0 +1,46 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "${CORS_ALLOWED_ORIGIN:http://localhost:4200}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/auth/**
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/users/**
+          filters:
+            - AuthenticationFilter
+        - id: access-service
+          uri: ${ACCESS_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/access/**
+          filters:
+            - AuthenticationFilter
+        - id: approval-service
+          uri: ${APPROVAL_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/approvals/**
+          filters:
+            - AuthenticationFilter
+
+jwt:
+  secret: ${JWT_SECRET:dev-only-placeholder-secret-set-JWT_SECRET-env-var}
+  expiration: ${JWT_EXPIRATION:86400000}
