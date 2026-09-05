@@ -41,6 +41,8 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_USE_SSL
+        value: "true"
       - key: JPA_DDL_AUTO
         value: update
       - key: JPA_SHOW_SQL
@@ -68,6 +70,8 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_USE_SSL
+        value: "true"
       - key: JPA_DDL_AUTO
         value: update
       - key: JPA_SHOW_SQL
@@ -95,6 +99,8 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_USE_SSL
+        value: "true"
       - key: JPA_DDL_AUTO
         value: update
       - key: JPA_SHOW_SQL
@@ -122,6 +128,8 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_USE_SSL
+        value: "true"
       - key: JPA_DDL_AUTO
         value: update
       - key: JPA_SHOW_SQL
