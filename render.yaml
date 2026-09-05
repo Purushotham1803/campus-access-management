@@ -1,0 +1,128 @@
+services:
+  - type: web
+    name: campus-access-gateway
+    runtime: docker
+    dockerfilePath: ./api-gateway/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGIN
+        value: https://purushotham1803.github.io
+      - key: AUTH_SERVICE_URL
+        value: https://campus-access-auth.onrender.com
+      - key: USER_SERVICE_URL
+        value: https://campus-access-users.onrender.com
+      - key: ACCESS_SERVICE_URL
+        value: https://campus-access-outings.onrender.com
+      - key: APPROVAL_SERVICE_URL
+        value: https://campus-access-approvals.onrender.com
+
+  - type: web
+    name: campus-access-auth
+    runtime: docker
+    dockerfilePath: ./auth-service/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        fromService:
+          name: campus-access-gateway
+          type: web
+          envVarKey: JWT_SECRET
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: JPA_SHOW_SQL
+        value: "false"
+
+  - type: web
+    name: campus-access-users
+    runtime: docker
+    dockerfilePath: ./user-service/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        fromService:
+          name: campus-access-gateway
+          type: web
+          envVarKey: JWT_SECRET
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: JPA_SHOW_SQL
+        value: "false"
+
+  - type: web
+    name: campus-access-outings
+    runtime: docker
+    dockerfilePath: ./access-service/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        fromService:
+          name: campus-access-gateway
+          type: web
+          envVarKey: JWT_SECRET
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: JPA_SHOW_SQL
+        value: "false"
+
+  - type: web
+    name: campus-access-approvals
+    runtime: docker
+    dockerfilePath: ./approval-service/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        fromService:
+          name: campus-access-gateway
+          type: web
+          envVarKey: JWT_SECRET
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: JPA_SHOW_SQL
+        value: "false"
