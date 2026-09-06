@@ -69,6 +69,18 @@
                     <div class="pass-label">Your Gate Pass Code</div>
                     <div class="pass-code">{{ $any(passCache[r.id]).passCode }}</div>
                     <div class="pass-hint">Show this code to security at the gate for entry/exit.</div>
+                    <div class="pass-hint mt-2" *ngIf="$any(passCache[r.id]).actualReturnTime">
+                      <mat-icon class="align-middle" style="font-size:16px;width:16px;height:16px;">event_available</mat-icon>
+                      Actually returned at {{ $any(passCache[r.id]).actualReturnTime | date:'MMM d, y, h:mm a' }}
+                    </div>
+                    <div class="pass-hint mt-2" *ngIf="!$any(passCache[r.id]).actualReturnTime && $any(passCache[r.id]).returnStatus === 'PENDING'">
+                      <mat-icon class="align-middle" style="font-size:16px;width:16px;height:16px;">hourglass_top</mat-icon>
+                      Return request pending admin approval.
+                    </div>
+                    <div class="pass-hint mt-2" *ngIf="!$any(passCache[r.id]).actualReturnTime && $any(passCache[r.id]).returnStatus === 'APPROVED'">
+                      <mat-icon class="align-middle" style="font-size:16px;width:16px;height:16px;">check_circle</mat-icon>
+                      Return approved — scan this pass at the gate to be marked IN.
+                    </div>
                   </div>
                 </div>
               </td>

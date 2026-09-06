@@ -1,10 +1,19 @@
 <div class="container-fluid p-0">
   <div class="mb-4">
     <h2 class="page-title mb-1">Pending Requests</h2>
-    <p class="text-muted mb-0">Review and act on outing requests awaiting a decision.</p>
+    <p class="text-muted mb-0">Review and act on outing and return requests awaiting a decision.</p>
   </div>
 
-  <mat-card class="card-surface p-4">
+  <div class="btn-group filter-group mb-4" role="group">
+    <button type="button" class="btn" [class.btn-primary]="tab === 'OUTGOING'" [class.btn-outline-primary]="tab !== 'OUTGOING'" (click)="tab = 'OUTGOING'">
+      Outgoing ({{requests.length}})
+    </button>
+    <button type="button" class="btn" [class.btn-primary]="tab === 'RETURN'" [class.btn-outline-primary]="tab !== 'RETURN'" (click)="tab = 'RETURN'">
+      Return ({{returns.length}})
+    </button>
+  </div>
+
+  <mat-card class="card-surface p-4" *ngIf="tab === 'OUTGOING'">
     <div class="text-center py-5" *ngIf="loading">
       <mat-spinner diameter="36" class="mx-auto"></mat-spinner>
     </div>
@@ -59,6 +68,47 @@
               </td>
             </tr>
           </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+
+  <mat-card class="card-surface p-4" *ngIf="tab === 'RETURN'">
+    <div class="text-center py-5" *ngIf="loading">
+      <mat-spinner diameter="36" class="mx-auto"></mat-spinner>
+    </div>
+
+    <div class="text-center text-muted py-5" *ngIf="!loading && returns.length === 0">
+      <mat-icon class="empty-icon">task_alt</mat-icon>
+      <p class="mb-0">No return requests waiting — all caught up!</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && returns.length > 0">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Requester</th>
+            <th>Destination</th>
+            <th>Expected Return</th>
+            <th>Requested At</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ret of returns">
+            <td>{{ret.username}}</td>
+            <td>{{ret.destination}}</td>
+            <td>{{ret.expectedReturnTime | date:'MMM d, h:mm a'}}</td>
+            <td>{{ret.returnRequestedAt | date:'MMM d, h:mm a'}}</td>
+            <td class="text-end">
+              <button mat-raised-button color="primary" [disabled]="processing" (click)="decideReturn(ret, true)">
+                <mat-icon>check</mat-icon> Approve
+              </button>
+              <button mat-raised-button color="warn" class="ms-2" [disabled]="processing" (click)="decideReturn(ret, false)">
+                <mat-icon>close</mat-icon> Reject
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

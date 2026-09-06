@@ -10,9 +10,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApprovalService } from '../../../services/approval.service';
+import { AccessService } from '../../../services/access.service';
 import { UserService } from '../../../services/user.service';
 import { AuthService } from '../../../services/auth.service';
-import { OutingRequest, User } from '../../../models/models';
+import { OutingRequest, PendingReturn, User } from '../../../models/models';
+
+type Tab = 'OUTGOING' | 'RETURN';
 
 @Component({
   selector: 'app-admin-requests',
@@ -23,15 +26,18 @@ import { OutingRequest, User } from '../../../models/models';
   styleUrls: ['./admin-requests.component.scss']
 })
 export class AdminRequestsComponent implements OnInit {
+  tab: Tab = 'OUTGOING';
   loading = true;
   processing = false;
   requests: OutingRequest[] = [];
+  returns: PendingReturn[] = [];
   userMap: Partial<Record<number, User>> = {};
   expandedId: number | null = null;
   reason = '';
 
   constructor(
     private approvalService: ApprovalService,
+    private accessService: AccessService,
     private userService: UserService,
     private auth: AuthService,
     private snackBar: MatSnackBar
@@ -43,10 +49,12 @@ export class AdminRequestsComponent implements OnInit {
     this.loading = true;
     forkJoin({
       pending: this.approvalService.getPending(),
+      returns: this.accessService.getPendingReturns(),
       users: this.userService.getUsers()
     }).subscribe({
-      next: ({ pending, users }) => {
+      next: ({ pending, returns, users }) => {
         this.requests = [...pending].sort((a, b) => b.id - a.id);
+        this.returns = [...returns].sort((a, b) => a.passId - b.passId);
         this.userMap = Object.fromEntries(users.map(u => [u.id, u]));
         this.loading = false;
       },
@@ -80,6 +88,21 @@ export class AdminRequestsComponent implements OnInit {
       error: (err) => {
         this.processing = false;
         this.snackBar.open(err?.error || 'Could not process request.', 'Dismiss', { duration: 3000 });
+      }
+    });
+  }
+
+  decideReturn(ret: PendingReturn, approve: boolean) {
+    this.processing = true;
+    this.accessService.approveReturn(ret.passId, approve).subscribe({
+      next: () => {
+        this.processing = false;
+        this.snackBar.open(`Return ${approve ? 'approved' : 'rejected'}.`, 'OK', { duration: 2500 });
+        this.load();
+      },
+      error: (err) => {
+        this.processing = false;
+        this.snackBar.open(err?.error || 'Could not process return request.', 'Dismiss', { duration: 3000 });
       }
     });
   }

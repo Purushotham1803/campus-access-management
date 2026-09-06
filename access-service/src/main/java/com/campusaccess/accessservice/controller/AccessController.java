@@ -1,4 +1,5 @@
 package com.campusaccess.accessservice.controller;
+import com.campusaccess.accessservice.dto.PendingReturnDto;
 import com.campusaccess.accessservice.dto.RequestDto;
 import com.campusaccess.accessservice.entity.AccessPass;
 import com.campusaccess.accessservice.entity.GateEntryExit;
@@ -12,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/access")
@@ -85,6 +88,81 @@ public class AccessController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // The pass for the outing a user is currently OUT on: their most recent
+    // APPROVED request whose pass hasn't been marked returned yet.
+    @GetMapping("/passes/active/{userId}")
+    public ResponseEntity<?> getActivePass(@PathVariable Long userId) {
+        List<OutingRequest> approved = requestRepository.findByUserId(userId).stream()
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .sorted(Comparator.comparing(OutingRequest::getId).reversed())
+                .toList();
+        for (OutingRequest r : approved) {
+            AccessPass pass = passRepository.findByRequestId(r.getId()).orElse(null);
+            if (pass != null && pass.getActualReturnTime() == null) {
+                return ResponseEntity.ok(pass);
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/passes/{id}/request-return")
+    public ResponseEntity<?> requestReturn(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        AccessPass pass = passRepository.findById(id).orElse(null);
+        if (pass == null) return ResponseEntity.notFound().build();
+
+        OutingRequest req = requestRepository.findById(pass.getRequestId()).orElse(null);
+        if (req == null) return ResponseEntity.badRequest().body("Underlying request not found.");
+
+        Object userIdRaw = body.get("userId");
+        Long userId = userIdRaw == null ? null : Long.valueOf(userIdRaw.toString());
+        if (userId == null || !userId.equals(req.getUserId())) {
+            return ResponseEntity.status(403).body("This pass does not belong to you.");
+        }
+
+        String status = pass.getReturnStatus();
+        if (status != null && (status.equals("PENDING") || status.equals("APPROVED"))) {
+            return ResponseEntity.badRequest().body("A return request is already " + status.toLowerCase() + ".");
+        }
+
+        pass.setReturnStatus("PENDING");
+        pass.setReturnRequestedAt(LocalDateTime.now());
+        return ResponseEntity.ok(passRepository.save(pass));
+    }
+
+    @GetMapping("/passes/pending-returns")
+    public List<PendingReturnDto> getPendingReturns() {
+        return passRepository.findByReturnStatusOrderByReturnRequestedAtAsc("PENDING").stream()
+                .map(pass -> {
+                    OutingRequest req = requestRepository.findById(pass.getRequestId()).orElse(null);
+                    User user = req != null ? userRepository.findById(req.getUserId()).orElse(null) : null;
+                    return new PendingReturnDto(
+                            pass.getId(),
+                            req != null ? req.getId() : null,
+                            user != null ? user.getUsername() : "unknown",
+                            req != null ? req.getDestination() : null,
+                            req != null ? req.getReturnTime() : null,
+                            pass.getReturnRequestedAt()
+                    );
+                })
+                .toList();
+    }
+
+    @PostMapping("/passes/{id}/approve-return")
+    public ResponseEntity<?> approveReturn(@RequestHeader(value = "role", required = false) String callerRole,
+                                            @PathVariable Long id, @RequestBody Map<String, Object> body) {
+        if (!"ADMIN".equals(callerRole)) {
+            return ResponseEntity.status(403).body("Only admins can approve return requests.");
+        }
+        AccessPass pass = passRepository.findById(id).orElse(null);
+        if (pass == null) return ResponseEntity.notFound().build();
+        if (!"PENDING".equals(pass.getReturnStatus())) {
+            return ResponseEntity.badRequest().body("No pending return request for this pass.");
+        }
+        boolean approve = Boolean.TRUE.equals(body.get("approve"));
+        pass.setReturnStatus(approve ? "APPROVED" : "REJECTED");
+        return ResponseEntity.ok(passRepository.save(pass));
+    }
+
     @GetMapping("/gate/logs")
     public List<GateEntryExit> getGateLogs() {
         return gateRepository.findAllByOrderByScanTimeDesc();
@@ -115,6 +193,9 @@ public class AccessController {
         if (scanType.equals("IN") && "IN".equals(currentStatus)) {
             return ResponseEntity.badRequest().body("Student is already IN.");
         }
+        if (scanType.equals("IN") && !"APPROVED".equals(pass.getReturnStatus())) {
+            return ResponseEntity.badRequest().body("Return has not been requested and approved by admin yet.");
+        }
 
         GateEntryExit record = new GateEntryExit();
         record.setPassId(pass.getId());
@@ -122,6 +203,11 @@ public class AccessController {
         record.setScanTime(LocalDateTime.now());
         record.setType(scanType);
         gateRepository.save(record);
+
+        if (scanType.equals("IN")) {
+            pass.setActualReturnTime(record.getScanTime());
+            passRepository.save(pass);
+        }
 
         user.setCampusStatus(scanType);
         userRepository.save(user);
