@@ -11,8 +11,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
 
-const MAX_RETRIES = 4;
-const RETRY_SECONDS = 10;
+// A fully cold Render free-tier instance (gateway + auth-service + a fresh
+// DB connection) can take well over a minute to come back. Retry patiently
+// rather than giving up after a token effort.
+const MAX_RETRIES = 12;
+const RETRY_SECONDS = 8;
 
 @Component({
   selector: 'app-login',
@@ -59,10 +62,12 @@ export class LoginComponent implements OnDestroy {
           this.error = 'Invalid username or password.';
         } else if (isColdStart && this.retryAttempt < MAX_RETRIES) {
           this.retryAttempt++;
-          this.error = `Free hosting sleeps when idle — waking the server up (attempt ${this.retryAttempt}/${MAX_RETRIES})...`;
+          this.error = this.retryAttempt <= 2
+            ? 'Free hosting sleeps when idle — waking the server up...'
+            : 'Still waking up — free hosting can take a minute or two after a long idle period.';
           this.startRetryCountdown();
         } else if (isColdStart) {
-          this.error = 'The server is taking longer than usual to start. Please wait a moment and click Sign In again.';
+          this.error = 'The server is taking unusually long to start. Please wait a bit and click Sign In again.';
         } else {
           this.error = 'Something went wrong logging in. Please try again.';
         }

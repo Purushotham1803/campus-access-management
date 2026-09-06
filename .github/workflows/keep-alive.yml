@@ -1,27 +1,42 @@
 name: Keep Render Services Warm
 
 # Render's free tier sleeps a service after ~15 minutes with no HTTP traffic,
-# and a cold Java/Spring Boot boot can take 20-40s+ to come back. Pinging
-# every 10 minutes keeps all 5 services inside that window so a real visitor
-# rarely hits a cold start. Runs on GitHub's infrastructure, independent of
-# anyone's own machine being on.
+# and a cold Java/Spring Boot boot can take 30-60s+. Pinging every 5 minutes
+# (rather than right at the 15-minute edge) leaves margin for GitHub's own
+# scheduler jitter. Each backend service is hit on a real DB-backed endpoint,
+# not just "/", so the database connection pool stays warm too — a warm JVM
+# doesn't mean the next real request won't still pay a slow first-query
+# penalty against a cold connection pool.
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping all backend services
+      - name: Ping gateway
+        continue-on-error: true
+        run: curl -sS -o /dev/null -m 90 -w "gateway -> HTTP %{http_code} in %{time_total}s\n" "https://campus-access-gateway.onrender.com/" || echo "gateway ping failed/timed out"
+
+      - name: Ping auth-service (DB-backed)
+        continue-on-error: true
         run: |
-          for url in \
-            "https://campus-access-gateway.onrender.com/" \
-            "https://campus-access-auth.onrender.com/" \
-            "https://campus-access-users.onrender.com/" \
-            "https://campus-access-outings.onrender.com/" \
-            "https://campus-access-approvals.onrender.com/"; do
-            echo "Pinging $url"
-            curl -sS -o /dev/null -m 60 -w "  -> HTTP %{http_code} in %{time_total}s\n" "$url" || echo "  -> request failed (still generates traffic to wake the service)"
-          done
+          curl -sS -o /dev/null -m 90 -w "auth-service -> HTTP %{http_code} in %{time_total}s\n" \
+            -X POST "https://campus-access-auth.onrender.com/auth/login" \
+            -H "Content-Type: application/json" \
+            -d '{"username":"__keepalive__","password":"__keepalive__"}' \
+            || echo "auth-service ping failed/timed out"
+
+      - name: Ping user-service (DB-backed)
+        continue-on-error: true
+        run: curl -sS -o /dev/null -m 90 -w "user-service -> HTTP %{http_code} in %{time_total}s\n" "https://campus-access-users.onrender.com/users" || echo "user-service ping failed/timed out"
+
+      - name: Ping access-service (DB-backed)
+        continue-on-error: true
+        run: curl -sS -o /dev/null -m 90 -w "access-service -> HTTP %{http_code} in %{time_total}s\n" "https://campus-access-outings.onrender.com/access/requests" || echo "access-service ping failed/timed out"
+
+      - name: Ping approval-service (DB-backed)
+        continue-on-error: true
+        run: curl -sS -o /dev/null -m 90 -w "approval-service -> HTTP %{http_code} in %{time_total}s\n" "https://campus-access-approvals.onrender.com/approvals/pending" || echo "approval-service ping failed/timed out"
