@@ -1,5 +1,35 @@
 # Deploying Campus Access Management
 
+## Live deployment (Render + GitHub Pages)
+
+- Frontend: https://purushotham1803.github.io/campus-access-management/
+- API Gateway: https://campus-access-gateway.onrender.com
+- All 5 backend services + the deployment topology are defined in `render.yaml`
+  (a Render Blueprint) — Render creates one free web service per entry.
+- Database: Aiven free MySQL (credentials set directly in each Render
+  service's dashboard as `sync: false` env vars, not in this repo).
+
+### Reliability on Render's free tier
+
+Free web services on Render sleep after ~15 minutes idle, and a cold
+Spring Boot boot can take 20-40s+. Three things address this:
+
+1. **`JAVA_TOOL_OPTIONS` heap caps** (`render.yaml`) — each service is capped
+   at `-Xmx400m` to stay well inside Render's free 512MB per-instance limit,
+   reducing the chance of an OOM kill turning into a crash-loop.
+2. **Gateway timeout raised** (`api-gateway/application.yml`,
+   `spring.cloud.gateway.httpclient.response-timeout: 55s`) — long enough
+   for a downstream service to finish a cold boot before the gateway gives
+   up and returns a premature 502.
+3. **Keep-alive ping** (`.github/workflows/keep-alive.yml`) — a GitHub
+   Actions cron every 10 minutes pings all 5 services, so a real visitor
+   rarely hits a genuinely cold instance. Runs on GitHub's infrastructure,
+   independent of anyone's own machine.
+
+On top of that, the login page (`login.component.ts`) auto-retries up to 4
+times with a visible countdown if it does hit a cold-start-shaped error
+(timeout, 502/503/504), instead of leaving a stale error on screen.
+
 ## What changed from the local-dev setup
 
 The app previously only worked pointed at `localhost` with secrets committed

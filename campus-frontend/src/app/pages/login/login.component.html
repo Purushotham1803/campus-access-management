@@ -14,9 +14,10 @@
         <mat-card-subtitle>Enter your campus credentials</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <div class="error-msg" *ngIf="error">
-          <mat-icon>error_outline</mat-icon>
-          {{error}}
+        <div class="error-msg" [class.retrying-msg]="retrying" *ngIf="error">
+          <mat-spinner *ngIf="retrying" diameter="16"></mat-spinner>
+          <mat-icon *ngIf="!retrying">error_outline</mat-icon>
+          <span>{{error}}<ng-container *ngIf="retrying"> Retrying in {{retryCountdown}}s&hellip;</ng-container></span>
         </div>
 
         <mat-form-field appearance="outline" class="full-width">

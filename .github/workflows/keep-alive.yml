@@ -1,0 +1,27 @@
+name: Keep Render Services Warm
+
+# Render's free tier sleeps a service after ~15 minutes with no HTTP traffic,
+# and a cold Java/Spring Boot boot can take 20-40s+ to come back. Pinging
+# every 10 minutes keeps all 5 services inside that window so a real visitor
+# rarely hits a cold start. Runs on GitHub's infrastructure, independent of
+# anyone's own machine being on.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping all backend services
+        run: |
+          for url in \
+            "https://campus-access-gateway.onrender.com/" \
+            "https://campus-access-auth.onrender.com/" \
+            "https://campus-access-users.onrender.com/" \
+            "https://campus-access-outings.onrender.com/" \
+            "https://campus-access-approvals.onrender.com/"; do
+            echo "Pinging $url"
+            curl -sS -o /dev/null -m 60 -w "  -> HTTP %{http_code} in %{time_total}s\n" "$url" || echo "  -> request failed (still generates traffic to wake the service)"
+          done

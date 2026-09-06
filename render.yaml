@@ -6,6 +6,8 @@ services:
     dockerContext: .
     plan: free
     envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx400m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC"
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ALLOWED_ORIGIN
@@ -26,6 +28,8 @@ services:
     dockerContext: .
     plan: free
     envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx400m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC"
       - key: JWT_SECRET
         fromService:
           name: campus-access-gateway
@@ -55,6 +59,8 @@ services:
     dockerContext: .
     plan: free
     envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx400m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC"
       - key: JWT_SECRET
         fromService:
           name: campus-access-gateway
@@ -84,6 +90,8 @@ services:
     dockerContext: .
     plan: free
     envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx400m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC"
       - key: JWT_SECRET
         fromService:
           name: campus-access-gateway
@@ -113,6 +121,8 @@ services:
     dockerContext: .
     plan: free
     envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx400m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC"
       - key: JWT_SECRET
         fromService:
           name: campus-access-gateway

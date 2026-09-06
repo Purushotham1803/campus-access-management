@@ -5,6 +5,9 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      httpclient:
+        connect-timeout: 10000
+        response-timeout: 55s
       globalcors:
         cors-configurations:
           '[/**]':
