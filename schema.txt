@@ -1,4 +1,4 @@
-﻿Shared Database: `campus_access_db`
+Shared Database: `campus_access_db`
 Entities per service (using JPA ddl-auto=update):
 
 1. `user-service`:
@@ -10,19 +10,29 @@ Entities per service (using JPA ddl-auto=update):
 - Needs access to `User` table to verify credentials and generate JWT. It can have a read-only or simple `User` entity just for authentication (id, username, password, role).
 
 3. `access-service`:
-- `OutingRequest` (id, user_id, type (LOCAL/NON_LOCAL), reason, destination, departure_time, return_time, status (PENDING/APPROVED/REJECTED/CANCELLED/EXPIRED))
-- `AccessPass` (id, request_id, pass_code)
-- `GateEntryExit` (id, pass_id, security_id, scan_time, type (OUT/IN))
+- `OutingRequest` (id, user_id, type (LOCAL/NON_LOCAL), reason, destination, departure_time, return_time,
+  status (PENDING/APPROVED/REJECTED/CANCELLED/EXPIRED),
+  return_status (NONE/PENDING/APPROVED/REJECTED), return_requested_at, actual_return_time)
 
 4. `approval-service`:
-- Needs access to `OutingRequest` to update status.
+- Needs access to `OutingRequest` to update status, and a read/write `User` mirror (id, campus_status)
+  to flip campus_status directly when a request is approved.
 - `Approval` (id, request_id, admin_id, status, reason)
+
+Flow:
+- Student/Faculty submits an OutingRequest -> PENDING.
+- Admin approves -> status=APPROVED and campus_status is set to OUT immediately (no gate pass, no scanning).
+- Admin rejects -> status=REJECTED.
+- While OUT, the requester can raise a return request -> return_status=PENDING.
+- Admin approves the return -> return_status=APPROVED, campus_status set to IN, actual_return_time recorded.
+- Admin rejects the return -> return_status=REJECTED; the requester can raise it again.
 
 Security/JWT:
 - Secret: set via the JWT_SECRET environment variable (see .env.example). Do not hardcode.
 - Auth service generates token with roles.
 - Other services use JwtFilter to validate token and populate SecurityContext.
 
-Roles: STUDENT, FACULTY, ADMIN, SECURITY
+Roles: STUDENT, FACULTY, ADMIN
 Statuses: PENDING, APPROVED, REJECTED, CANCELLED, EXPIRED
+Return Statuses: NONE, PENDING, APPROVED, REJECTED
 Campus Status: IN, OUT

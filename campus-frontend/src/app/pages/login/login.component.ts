@@ -37,7 +37,6 @@ export class LoginComponent {
         this.loading = false;
         const role = this.auth.getRole();
         if (role === 'ADMIN') this.router.navigate(['/admin/dashboard']);
-        else if (role === 'SECURITY') this.router.navigate(['/security/dashboard']);
         else this.router.navigate(['/student/dashboard']);
       },
       error: (err: HttpErrorResponse) => {

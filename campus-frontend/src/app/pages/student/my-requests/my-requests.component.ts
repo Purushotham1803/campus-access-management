@@ -8,7 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AccessService } from '../../../services/access.service';
 import { AuthService } from '../../../services/auth.service';
-import { AccessPass, OutingRequest } from '../../../models/models';
+import { OutingRequest } from '../../../models/models';
 
 type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
 
@@ -24,8 +24,7 @@ export class MyRequestsComponent implements OnInit {
   loading = true;
   filter: StatusFilter = 'ALL';
   filters: StatusFilter[] = ['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'];
-  expandedId: number | null = null;
-  passCache: Record<number, AccessPass | 'loading' | 'none'> = {};
+  requestingReturnId: number | null = null;
 
   constructor(private accessService: AccessService, private auth: AuthService, private snackBar: MatSnackBar) {}
 
@@ -58,14 +57,25 @@ export class MyRequestsComponent implements OnInit {
     });
   }
 
-  togglePass(req: OutingRequest) {
-    if (this.expandedId === req.id) { this.expandedId = null; return; }
-    this.expandedId = req.id;
-    if (this.passCache[req.id]) return;
-    this.passCache[req.id] = 'loading';
-    this.accessService.getPassByRequest(req.id).subscribe({
-      next: (pass) => this.passCache[req.id] = pass,
-      error: () => this.passCache[req.id] = 'none'
+  canRequestReturn(req: OutingRequest): boolean {
+    if (req.status !== 'APPROVED' || req.actualReturnTime) return false;
+    const status = req.returnStatus;
+    return !status || status === 'NONE' || status === 'REJECTED';
+  }
+
+  requestReturn(req: OutingRequest) {
+    this.requestingReturnId = req.id;
+    this.accessService.requestReturn(req.id, this.auth.getUserId()).subscribe({
+      next: (updated) => {
+        this.requestingReturnId = null;
+        const idx = this.requests.findIndex(r => r.id === updated.id);
+        if (idx >= 0) this.requests[idx] = updated;
+        this.snackBar.open('Return request sent — waiting for admin approval.', 'OK', { duration: 3500 });
+      },
+      error: (err) => {
+        this.requestingReturnId = null;
+        this.snackBar.open(err?.error || 'Could not request return.', 'Dismiss', { duration: 3000 });
+      }
     });
   }
 }

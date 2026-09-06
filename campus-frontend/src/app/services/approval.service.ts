@@ -18,4 +18,10 @@ export class ApprovalService {
   submitApproval(data: any): Observable<any> {
     return this.http.post(this.apiUrl, data);
   }
+  getPendingReturns(): Observable<OutingRequest[]> {
+    return this.http.get<OutingRequest[]>(`${this.apiUrl}/pending-returns`);
+  }
+  approveReturn(requestId: number, approve: boolean): Observable<OutingRequest> {
+    return this.http.post<OutingRequest>(`${this.apiUrl}/return`, { requestId, approve });
+  }
 }

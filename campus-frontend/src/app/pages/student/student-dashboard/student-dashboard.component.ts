@@ -10,7 +10,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
 import { AccessService } from '../../../services/access.service';
 import { UserService } from '../../../services/user.service';
-import { AccessPass, OutingRequest } from '../../../models/models';
+import { OutingRequest } from '../../../models/models';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -27,8 +27,6 @@ export class StudentDashboardComponent implements OnInit {
   loading = true;
   campusStatus = 'IN';
   department: string | null = null;
-  activePass: AccessPass | null = null;
-  loadingPass = false;
   requestingReturn = false;
 
   constructor(
@@ -44,35 +42,31 @@ export class StudentDashboardComponent implements OnInit {
       error: () => this.loading = false
     });
     this.userService.getUserProfile(this.userId).subscribe({
-      next: (u) => {
-        this.campusStatus = u.campusStatus;
-        this.department = u.department ?? null;
-        if (this.campusStatus === 'OUT') this.loadActivePass();
-      },
+      next: (u) => { this.campusStatus = u.campusStatus; this.department = u.department ?? null; },
       error: () => {}
     });
   }
 
-  loadActivePass() {
-    this.loadingPass = true;
-    this.accessService.getActivePass(this.userId).subscribe({
-      next: (pass) => { this.activePass = pass; this.loadingPass = false; },
-      error: () => { this.activePass = null; this.loadingPass = false; }
-    });
+  // The outing currently keeping them out: the most recent APPROVED request
+  // that hasn't been marked actually-returned yet.
+  get activeOutingRequest(): OutingRequest | null {
+    return this.requests.find(r => r.status === 'APPROVED' && !r.actualReturnTime) || null;
   }
 
   get canRequestReturn(): boolean {
-    const status = this.activePass?.returnStatus;
-    return this.campusStatus === 'OUT' && !this.loadingPass && (!status || status === 'NONE' || status === 'REJECTED');
+    const status = this.activeOutingRequest?.returnStatus;
+    return this.campusStatus === 'OUT' && !!this.activeOutingRequest && (!status || status === 'NONE' || status === 'REJECTED');
   }
 
   requestReturn() {
-    if (!this.activePass) return;
+    const req = this.activeOutingRequest;
+    if (!req) return;
     this.requestingReturn = true;
-    this.accessService.requestReturn(this.activePass.id, this.userId).subscribe({
-      next: (pass) => {
+    this.accessService.requestReturn(req.id, this.userId).subscribe({
+      next: (updated) => {
         this.requestingReturn = false;
-        this.activePass = pass;
+        const idx = this.requests.findIndex(r => r.id === updated.id);
+        if (idx >= 0) this.requests[idx] = updated;
         this.snackBar.open('Return request sent — waiting for admin approval.', 'OK', { duration: 4000 });
       },
       error: (err) => {

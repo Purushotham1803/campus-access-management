@@ -19,4 +19,13 @@ public class OutingRequest {
     @Column(name = "return_time")
     private LocalDateTime returnTime;
     private String status; // PENDING, APPROVED, REJECTED, CANCELLED, EXPIRED
+
+    // NONE, PENDING, APPROVED, REJECTED — set once the outing is APPROVED
+    // and the student asks to come back in; admin must approve it too.
+    @Column(name = "return_status", columnDefinition = "varchar(20) default 'NONE'")
+    private String returnStatus = "NONE";
+    @Column(name = "return_requested_at")
+    private LocalDateTime returnRequestedAt;
+    @Column(name = "actual_return_time")
+    private LocalDateTime actualReturnTime;
 }

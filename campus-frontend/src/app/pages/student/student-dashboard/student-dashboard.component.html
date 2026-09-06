@@ -10,15 +10,11 @@
     </span>
   </div>
 
-  <mat-card class="card-surface p-3 mb-4 d-flex flex-row align-items-center flex-wrap gap-3" *ngIf="campusStatus === 'OUT' && !loadingPass">
-    <ng-container [ngSwitch]="activePass?.returnStatus">
+  <mat-card class="card-surface p-3 mb-4 d-flex flex-row align-items-center flex-wrap gap-3" *ngIf="campusStatus === 'OUT'">
+    <ng-container [ngSwitch]="activeOutingRequest?.returnStatus">
       <ng-container *ngSwitchCase="'PENDING'">
         <mat-icon class="text-warning">hourglass_top</mat-icon>
         <span>Your return request is <strong>pending admin approval</strong>.</span>
-      </ng-container>
-      <ng-container *ngSwitchCase="'APPROVED'">
-        <mat-icon class="text-success">check_circle</mat-icon>
-        <span>Your return is <strong>approved</strong> &mdash; show your gate pass to security to be marked IN.</span>
       </ng-container>
       <ng-container *ngSwitchCase="'REJECTED'">
         <mat-icon class="text-danger">cancel</mat-icon>

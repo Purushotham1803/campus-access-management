@@ -96,9 +96,9 @@
         </thead>
         <tbody>
           <tr *ngFor="let ret of returns">
-            <td>{{ret.username}}</td>
+            <td>{{requesterName(ret.userId)}}</td>
             <td>{{ret.destination}}</td>
-            <td>{{ret.expectedReturnTime | date:'MMM d, h:mm a'}}</td>
+            <td>{{ret.returnTime | date:'MMM d, h:mm a'}}</td>
             <td>{{ret.returnRequestedAt | date:'MMM d, h:mm a'}}</td>
             <td class="text-end">
               <button mat-raised-button color="primary" [disabled]="processing" (click)="decideReturn(ret, true)">

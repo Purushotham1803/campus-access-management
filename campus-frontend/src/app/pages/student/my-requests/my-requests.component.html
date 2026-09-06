@@ -53,34 +53,21 @@
                 <button mat-button color="warn" *ngIf="r.status === 'PENDING'" (click)="cancel(r)">
                   <mat-icon>close</mat-icon> Cancel
                 </button>
-                <button mat-button color="primary" *ngIf="r.status === 'APPROVED'" (click)="togglePass(r)">
-                  <mat-icon>{{expandedId === r.id ? 'expand_less' : 'qr_code_2'}}</mat-icon>
-                  {{expandedId === r.id ? 'Hide Pass' : 'View Pass'}}
+                <button mat-button color="primary" *ngIf="canRequestReturn(r)"
+                        [disabled]="requestingReturnId === r.id" (click)="requestReturn(r)">
+                  <mat-icon>login</mat-icon> {{requestingReturnId === r.id ? 'Sending...' : 'Request to Return'}}
                 </button>
+                <span class="badge status-badge badge-pending" *ngIf="r.returnStatus === 'PENDING'">Return Pending</span>
+                <span class="badge status-badge badge-rejected" *ngIf="r.returnStatus === 'REJECTED' && !canRequestReturn(r)">Return Rejected</span>
               </td>
             </tr>
-            <tr *ngIf="expandedId === r.id" class="pass-row">
+            <tr *ngIf="r.actualReturnTime" class="pass-row">
               <td colspan="7">
-                <div class="pass-panel" *ngIf="passCache[r.id] === 'loading'">Loading pass...</div>
-                <div class="pass-panel text-danger" *ngIf="passCache[r.id] === 'none'">Pass not available yet.</div>
-                <div class="pass-panel" *ngIf="passCache[r.id] && passCache[r.id] !== 'loading' && passCache[r.id] !== 'none'">
-                  <mat-icon class="pass-icon">qr_code_2</mat-icon>
+                <div class="pass-panel">
+                  <mat-icon class="pass-icon">event_available</mat-icon>
                   <div>
-                    <div class="pass-label">Your Gate Pass Code</div>
-                    <div class="pass-code">{{ $any(passCache[r.id]).passCode }}</div>
-                    <div class="pass-hint">Show this code to security at the gate for entry/exit.</div>
-                    <div class="pass-hint mt-2" *ngIf="$any(passCache[r.id]).actualReturnTime">
-                      <mat-icon class="align-middle" style="font-size:16px;width:16px;height:16px;">event_available</mat-icon>
-                      Actually returned at {{ $any(passCache[r.id]).actualReturnTime | date:'MMM d, y, h:mm a' }}
-                    </div>
-                    <div class="pass-hint mt-2" *ngIf="!$any(passCache[r.id]).actualReturnTime && $any(passCache[r.id]).returnStatus === 'PENDING'">
-                      <mat-icon class="align-middle" style="font-size:16px;width:16px;height:16px;">hourglass_top</mat-icon>
-                      Return request pending admin approval.
-                    </div>
-                    <div class="pass-hint mt-2" *ngIf="!$any(passCache[r.id]).actualReturnTime && $any(passCache[r.id]).returnStatus === 'APPROVED'">
-                      <mat-icon class="align-middle" style="font-size:16px;width:16px;height:16px;">check_circle</mat-icon>
-                      Return approved — scan this pass at the gate to be marked IN.
-                    </div>
+                    <div class="pass-label">Actually Returned</div>
+                    <div class="pass-hint">{{r.actualReturnTime | date:'MMM d, y, h:mm a'}}</div>
                   </div>
                 </div>
               </td>

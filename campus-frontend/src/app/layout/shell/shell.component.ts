@@ -45,13 +45,8 @@ export class ShellComponent {
     { path: '/admin/register-user', icon: 'person_add', label: 'Register User' },
     { path: '/admin/audit-logs', icon: 'history', label: 'Audit Logs' },
   ];
-  securityLinks: NavLink[] = [
-    { path: '/security/dashboard', icon: 'security', label: 'Gate Control' },
-  ];
-
   get links(): NavLink[] {
     if (this.role === 'ADMIN') return this.adminLinks;
-    if (this.role === 'SECURITY') return this.securityLinks;
     return this.studentLinks;
   }
 

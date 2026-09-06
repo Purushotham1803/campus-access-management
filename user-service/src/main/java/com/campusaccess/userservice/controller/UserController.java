@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private static final Set<String> VALID_ROLES = Set.of("STUDENT", "FACULTY", "ADMIN", "SECURITY");
+    private static final Set<String> VALID_ROLES = Set.of("STUDENT", "FACULTY", "ADMIN");
 
     @Autowired private UserRepository userRepository;
     @Autowired private StudentRepository studentRepository;

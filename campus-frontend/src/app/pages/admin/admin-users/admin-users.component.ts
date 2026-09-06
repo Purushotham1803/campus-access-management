@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { UserService } from '../../../services/user.service';
 import { User } from '../../../models/models';
 
-type RoleFilter = 'ALL' | 'STUDENT' | 'FACULTY' | 'ADMIN' | 'SECURITY';
+type RoleFilter = 'ALL' | 'STUDENT' | 'FACULTY' | 'ADMIN';
 
 @Component({
   selector: 'app-admin-users',
@@ -22,7 +22,7 @@ export class AdminUsersComponent implements OnInit {
   loading = true;
   users: User[] = [];
   roleFilter: RoleFilter = 'ALL';
-  roles: RoleFilter[] = ['ALL', 'STUDENT', 'FACULTY', 'ADMIN', 'SECURITY'];
+  roles: RoleFilter[] = ['ALL', 'STUDENT', 'FACULTY', 'ADMIN'];
   search = '';
 
   constructor(private userService: UserService) {}

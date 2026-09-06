@@ -28,14 +28,5 @@ export const routes: Routes = [
       { path: 'audit-logs', loadComponent: () => import('./pages/admin/admin-audit-logs/admin-audit-logs.component').then(m => m.AdminAuditLogsComponent) },
     ]
   },
-  {
-    path: 'security',
-    loadComponent: () => import('./layout/shell/shell.component').then(m => m.ShellComponent),
-    canActivate: [authGuard, roleGuard(['SECURITY'])],
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', loadComponent: () => import('./pages/security/security-dashboard/security-dashboard.component').then(m => m.SecurityDashboardComponent) },
-    ]
-  },
   { path: '**', redirectTo: '/login' }
 ];
