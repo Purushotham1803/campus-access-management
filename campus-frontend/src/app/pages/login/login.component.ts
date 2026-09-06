@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -39,7 +40,16 @@ export class LoginComponent {
         else if (role === 'SECURITY') this.router.navigate(['/security/dashboard']);
         else this.router.navigate(['/student/dashboard']);
       },
-      error: () => { this.loading = false; this.error = 'Invalid username or password.'; }
+      error: (err: HttpErrorResponse) => {
+        this.loading = false;
+        if (err.status === 401) {
+          this.error = 'Invalid username or password.';
+        } else if (err.status === 0 || [502, 503, 504].includes(err.status)) {
+          this.error = 'Server is starting up (free hosting sleeps when idle) — please try again in about 30 seconds.';
+        } else {
+          this.error = 'Something went wrong logging in. Please try again.';
+        }
+      }
     });
   }
 }
